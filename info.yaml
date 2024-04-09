@@ -26,8 +26,8 @@ project:
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
   # Inputs
-  ui[0]: "clk"
-  ui[1]: "rst"
+  ui[0]: ""
+  ui[1]: ""
   ui[2]: ""
   ui[3]: "scl"
   ui[4]: "pwm_en"
