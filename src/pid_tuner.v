@@ -19,10 +19,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 
  module pid_tuner #(
-  parameter DATA_WIDTH = 16, //only used at the 3rd subroutine
-  parameter ENCODER_WIDTH = 3 //stop using it
+  parameter DATA_WIDTH = 16 //only used at the 3rd subroutine
 )(
-  input wire clk,              		// clock input. when there is no clk signal motor does not run, CLK @50MHz, T=20ns
+  input wire clk_div,              		// clock input. when there is no clk signal motor does not run, CLK @50MHz, T=20ns
+  input wire clk_slow,
   input wire reset,            		// when it is 1 motor does run
   input wire [2:0] pid_select,			//select control type: 100 for P, 110 for PI, 111 for PID (?)
   input wire signed [DATA_WIDTH-1:0] period_speed,//system output of speed measured in clock cycles
@@ -45,7 +45,7 @@
    	wire div_done;
 
 	Divider32bit divider_inst(
-   .clk(clk),
+   .clk(clk_div),
    .reset(reset_divider),
    .start_division(division_trig),  // Start signal for division
    .dividend(dividend),       // Dividend input
@@ -56,7 +56,6 @@
       .division_done(div_done)
 );
 
-	reg [DATA_WIDTH-1:0] clk_counter;
 	reg [DATA_WIDTH-1:0] period_counter=16'd0;	//register for time between peaks
 	reg [DATA_WIDTH-1:0] peak_period=16'd0;		//register for last time between peaks
 	reg signed [DATA_WIDTH-1:0] period_speed_reg=16'd0;
@@ -64,7 +63,7 @@
 	reg signed [DATA_WIDTH-1:0] peak_level=16'd0;
 	reg signed [DATA_WIDTH-1:0] prev_peak_level=16'd0;
 	reg signed [DATA_WIDTH-1:0] dip_level;
-    reg [DATA_WIDTH-1:0]	Kp_max;				//temporary Kp for incrementation and find max, init to decimal 1 
+    reg [7:0] Kp_max;				//temporary Kp for incrementation and find max, init to decimal 1 
 	
    //find peaks
 	reg autotune_finalized=1'b0;
@@ -74,7 +73,7 @@
 	reg Ki_done;
 	reg Kd_done;
 	
-	always @(posedge clk or posedge reset) begin
+	always @(posedge clk_slow) begin
     if (reset) begin
 		peak_period<=16'h7fff;
 		Kp_done<=1'b0;
@@ -92,15 +91,14 @@
       	autotune_finalized<=1'b0;
       	decreasing_flag<=1'b0;
       	increasing_flag<=1'b1;
-      	Kp_max<=16'd1;
-      	Kp<=8'b0;
+      	Kp_max<=8'd1;
+      	Kp<=8'b1;
       	Ki<=8'b0;
       	Kd<=7'b0;
       	tuning_done<=1'b0;
       	reset_divider<=1'b1;
-    end else if (clk_counter==16'h0040)
+    end else
 	   begin 
-	       clk_counter<=0;
 	       if(autotune_finalized==1'b0)
 	       begin
 	           prev_period_speed<=period_speed_reg;
@@ -177,7 +175,7 @@
 								divisor<=100;
 								division_trig<=1'b1;
 							 end else if (div_done==1'b1) begin
-								Kp<=quotient;
+								Kp<=quotient[7:0];
 								division_trig<=1'b0;
 								Kp_done<=1'b1;
 							end else begin
@@ -192,7 +190,7 @@
 								    divisor<=100*peak_period;
 								    division_trig<=1'b1;
 							   end else if (div_done==1'b1) begin
-								    Ki<=quotient;
+								    Ki<=quotient[7:0];
 								    division_trig<=1'b0;
 								    Ki_done<=1'b1;
 							   end else begin
@@ -213,7 +211,7 @@
 								divisor<=10;
 								division_trig<=1'b1;
                             end else if (div_done==1'b1) begin
-								Kp<=quotient;
+								Kp<=quotient[7:0];
 								division_trig<=1'b0;
 								Kp_done<=1'b1;
 							end else begin
@@ -231,7 +229,7 @@
 								divisor<=10*peak_period;
 								division_trig<=1'b1;
                             end else if (div_done) begin
-								Ki<=quotient;
+								Ki<=quotient[7:0];
 								division_trig<=1'b0;
 								Ki_done<=1'b1;
 							end else begin
@@ -248,7 +246,7 @@
 								division_trig<=1'b1;
 							end else if (div_done) begin
                               	
-								Kd<=quotient;
+								Kd<=quotient[7:0];
 								division_trig<=1'b0;
 								Kd_done<=1'b1;
 							end else begin
@@ -267,8 +265,6 @@
 					endcase
 					tuning_done<=Kp_done & Ki_done & Kd_done;
             end		
-    	end else begin
-    	   clk_counter<=clk_counter+1;
     	end
 	       
 	end 

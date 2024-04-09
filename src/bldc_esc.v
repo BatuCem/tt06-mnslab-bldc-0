@@ -22,6 +22,7 @@
 
 module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
   input clk,              		// clock input. when there is no clk signal motor does not run
+  input clk_div,
   input reset,            		// when it is 1 motor does run active high
   input [3:0] tunerreset_autotune,
   input pwm_en,						//Pin to enable pwm output	active high
@@ -68,8 +69,6 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
     reg signed[DATA_WIDTH-1:0] derivative;
     reg signed[(DATA_WIDTH)-1:0] pid_output;
     reg signed[DATA_WIDTH-1:0] previous_error;
-  
-    reg [15:0] clk_counter ;
     reg [2:0] encoder_a_shift_reg;
     reg encoder_a_reg;
     reg [2:0] encoder_b_shift_reg;
@@ -81,7 +80,8 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
     reg [1:0]encoder_a_set;
     
     pid_tuner tuner_inst_1(
-	   .clk(clk),
+	   .clk_div(clk_div),
+	   .clk_slow(clk),
 	   .reset(tunerreset_pin),
 	   .pid_select(tunerreset_autotune[2:0]),
 	   .period_speed(error),
@@ -97,7 +97,6 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
     begin
  
         if (reset) begin    //reset case
-            clk_counter <= 16'b0;
             counter_rst <= 1'b1;
             encoder_a_set <= 2'b0;
             flag <= 1'b0;
@@ -125,142 +124,137 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
             pwm_en_shift_reg <= 3'b0;
             pwm_en_reg <= 1'b0;
         end else begin
-            if(clk_counter == 16'h0040)begin    //divide clock
-                clk_counter <= 16'b0;
-                pwm_en_shift_reg <= {pwm_en_shift_reg[debounce-2:0],pwm_en};
-                if (pwm_en_shift_reg == {debounce{1'b0}} || pwm_en_shift_reg == {debounce{1'b1}})begin
-                    pwm_en_reg <= pwm_en_shift_reg[0];  //enable pwm
-                end
-                encoder_a_shift_reg <= {encoder_a_shift_reg[debounce-2:0],encoder_a};
-                if (encoder_a_shift_reg == {debounce{1'b0}} || encoder_a_shift_reg == {debounce{1'b1}})begin
-                    encoder_a_reg <= encoder_a_shift_reg[0];    //apply ancoder a
-                end 
-                encoder_b_shift_reg <= {encoder_b_shift_reg[debounce-2:0],encoder_b};
-                if (encoder_b_shift_reg == {debounce{1'b0}} || encoder_b_shift_reg == {debounce{1'b1}})begin
-                    encoder_b_reg <= encoder_b_shift_reg[0];    //apply encoder b
-                end
-                pid_output <= (Kp * error) + ((Ki * integral)>>3) + (Kd * derivative);	//compute pid response
-                if(pid_output<1) begin			//if pid output is negative, cap at 0
-                    pwm_duty_cycle<=pwm_period;
-                end else if (pid_output>pwm_period) begin	//if pid output above period, give 100% pwm
-                    pwm_duty_cycle<=0;
-                end else begin
-                    pwm_duty_cycle<=pid_output;	//if in between values, give pid output as pwm
-                end
-                derivative <= error - previous_error;
-                if (integral + error > 2048) begin //These are very high values for ASIC, need to push for lower register(?)
-                    integral <= 2047;
-                end
-                else if (integral + error < -2048) begin
-                    integral <= -2047;
-                end
-                else begin
-                    integral <= integral + error;
-                end
-                previous_error<=error;
-                error <= period_reference_reg - period_speed;
+            pwm_en_shift_reg <= {pwm_en_shift_reg[debounce-2:0],pwm_en};
+            if (pwm_en_shift_reg == {debounce{1'b0}} || pwm_en_shift_reg == {debounce{1'b1}})begin
+                pwm_en_reg <= pwm_en_shift_reg[0];  //enable pwm
+            end
+            encoder_a_shift_reg <= {encoder_a_shift_reg[debounce-2:0],encoder_a};
+            if (encoder_a_shift_reg == {debounce{1'b0}} || encoder_a_shift_reg == {debounce{1'b1}})begin
+                encoder_a_reg <= encoder_a_shift_reg[0];    //apply ancoder a
+            end 
+            encoder_b_shift_reg <= {encoder_b_shift_reg[debounce-2:0],encoder_b};
+            if (encoder_b_shift_reg == {debounce{1'b0}} || encoder_b_shift_reg == {debounce{1'b1}})begin
+                encoder_b_reg <= encoder_b_shift_reg[0];    //apply encoder b
+            end
+            pid_output <= (Kp * error) + ((Ki * integral)>>3) + (Kd * derivative);	//compute pid response
+            if(pid_output<1) begin			//if pid output is negative, cap at 0
+                pwm_duty_cycle<=pwm_period;
+            end else if (pid_output>pwm_period) begin	//if pid output above period, give 100% pwm
+                pwm_duty_cycle<=0;
+            end else begin
+                pwm_duty_cycle<=pid_output;	//if in between values, give pid output as pwm
+            end
+            derivative <= error - previous_error;
+            if (integral + error > 2048) begin //These are very high values for ASIC, need to push for lower register(?)
+                integral <= 2047;
+            end
+            else if (integral + error < -2048) begin
+                integral <= -2047;
+            end
+            else begin
+                integral <= integral + error;
+            end
+            previous_error<=error;
+            error <= period_reference_reg - period_speed;
                 
-                // Reset PWM counter at the end of the PWM period
-                if (pwm_counter == pwm_period-1) begin
-                    pwm_counter <= 16'd0;
-                end else begin
-                pwm_counter <= pwm_counter + 1;
-                end
-                encoder_state <= {encoder_a_reg, encoder_b_reg};
-                prev_encoder_state <= encoder_state;
-                if(pwm_en_reg)begin
-                    case ({encoder_state, prev_encoder_state})
-                        4'b0100, 4'b1101,4'b1011: begin// Rotate in one direction (e.g., forward)
-                            pwm_direction<=2'b10;
-                        end
-                        4'b1000,4'b1110,4'b0111: begin// Rotate in the opposite direction (e.g., reverse)
-                            pwm_direction<=2'b01;
-                        end
+            // Reset PWM counter at the end of the PWM period
+            if (pwm_counter == pwm_period-1) begin
+                pwm_counter <= 16'd0;
+            end else begin
+            pwm_counter <= pwm_counter + 1;
+            end
+            encoder_state <= {encoder_a_reg, encoder_b_reg};
+            prev_encoder_state <= encoder_state;
+            if(pwm_en_reg)begin
+                case ({encoder_state, prev_encoder_state})
+                    4'b0100, 4'b1101,4'b1011: begin// Rotate in one direction (e.g., forward)
+                        pwm_direction<=2'b10;
+                    end
+                    4'b1000,4'b1110,4'b0111: begin// Rotate in the opposite direction (e.g., reverse)
+                        pwm_direction<=2'b01;
+                    end
 //                    4'b1100, 4'b0011, 4'b1001,4'b0110: begin// No change (no rotation)
 //                        pwm_direction<=2'b00;
 //                    end
-                        default: begin
-                            pwm_direction<=pwm_direction;// Keep the previous direction in case of an unexpected state
-                        end
-                    endcase
-                end
+                    default: begin
+                        pwm_direction<=pwm_direction;// Keep the previous direction in case of an unexpected state
+                    end
+                endcase
+            end
 //            else begin
 //                encoder_state <= 2'b0;
 //                prev_encoder_state <= 2'b0;
 //            end
             
-                if(!flag && (pwm_period!=0))begin
-                    motor_positive <= (period_reference<32767) ? (1'b1) : (1'b0);
-                    motor_negative <= (period_reference>=32767) ? (1'b1) : (1'b0);
-                    flag <= ((period_speed>=150) && (period_reference>=period_speed)) ? (1'b1): (1'b0);
-                end
-                if(period_reference>=32767)
-                begin
-                    period_reference_reg<= (~period_reference)+1; //two's complement for negative references
-                end else begin
-                    period_reference_reg<= period_reference;
-                end
-                if(pwm_en_reg==1'b0)begin
-                    motor_positive<=1'b0;
-                    motor_negative<=1'b0;
-                end else if (flag)begin
-                    case(pwm_direction)
-                        2'b00: begin
-                            if(period_reference>32767) begin //check negative references by 2's complement
-                                motor_positive<=1'b0;
-                                motor_negative<=motor_pwm;
-                            end else begin
-                                motor_positive<=motor_pwm;
-                                motor_negative<=1'b0;
-                            end
-                        end 
-                        2'b01:begin
+            if(!flag && (pwm_period!=0))begin
+                motor_positive <= (period_reference<32767) ? (1'b1) : (1'b0);
+                motor_negative <= (period_reference>=32767) ? (1'b1) : (1'b0);
+                flag <= ((period_speed>=150) && (period_reference>=period_speed)) ? (1'b1): (1'b0);
+            end
+            if(period_reference>=32767)
+            begin
+                period_reference_reg<= (~period_reference)+1; //two's complement for negative references
+            end else begin
+                period_reference_reg<= period_reference;
+            end
+            if(pwm_en_reg==1'b0)begin
+                motor_positive<=1'b0;
+                motor_negative<=1'b0;
+            end else if (flag)begin
+                case(pwm_direction)
+                    2'b00: begin
+                        if(period_reference>32767) begin //check negative references by 2's complement
                             motor_positive<=1'b0;
                             motor_negative<=motor_pwm;
-                        end
-                        2'b10:begin
+                        end else begin
                             motor_positive<=motor_pwm;
                             motor_negative<=1'b0;
                         end
-                        default: begin
-                            motor_positive <= 1'b0;
-                            motor_negative <= 1'b0;
-                        end
-                    endcase
-                end
-                if(override_internal_pid) begin
-                    Kp<=Kp_ext;
-                    Ki<=Ki_ext;
-                    Kd<=Kd_ext;
-                end else if (tuning_done) begin
-                    Kp<=Kp_int;
-                    Ki<=Ki_int;
-                    Kd<=Kd_int;
-                end else begin
-                    Kp<=Kp_int;
-                    Ki<=0;
-                    Kd<=0;
-                end
-                if(encoder_a_reg && encoder_a_set==2'b00)begin
-                    counter_rst <= 1'b0;
-                    encoder_a_set <= 2'b01;
-                end else if(encoder_a_set==2'b01 && !encoder_a_reg)begin
-                    encoder_a_set <= 2'b10;
-                end else if (encoder_a_reg && encoder_a_set==2'b10)begin
-                    counter_rst <= 1'b1;
-                    encoder_a_set <= 2'b00;
-                    period_speed<=speed_ctr;
-                end
-                if(counter_rst)begin
-                    speed_ctr <= 16'b0;
-                end else begin
-                    speed_ctr<=speed_ctr+1;
-                end
-            end else begin
-                clk_counter <= clk_counter + 1;
+                    end 
+                    2'b01:begin
+                        motor_positive<=1'b0;
+                        motor_negative<=motor_pwm;
+                    end
+                    2'b10:begin
+                        motor_positive<=motor_pwm;
+                        motor_negative<=1'b0;
+                    end
+                    default: begin
+                        motor_positive <= 1'b0;
+                        motor_negative <= 1'b0;
+                    end
+                endcase
             end
-        end
+            if(override_internal_pid) begin
+                Kp<=Kp_ext;
+                Ki<=Ki_ext;
+                Kd<=Kd_ext;
+            end else if (tuning_done) begin
+                Kp<=Kp_int;
+                Ki<=Ki_int;
+                Kd<=Kd_int;
+            end else begin
+                Kp<=Kp_int;
+                Ki<=0;
+                Kd<=0;
+            end
+            if(encoder_a_reg && encoder_a_set==2'b00)begin
+                counter_rst <= 1'b0;
+                encoder_a_set <= 2'b01;
+            end else if(encoder_a_set==2'b01 && !encoder_a_reg)begin
+                encoder_a_set <= 2'b10;
+            end else if (encoder_a_reg && encoder_a_set==2'b10)begin
+                counter_rst <= 1'b1;
+                encoder_a_set <= 2'b00;
+                period_speed<=speed_ctr;
+            end
+            if(counter_rst)begin
+                speed_ctr <= 16'b0;
+            end else begin
+                speed_ctr<=speed_ctr+1;
+            end
     end
+end
  
   //assign outputvar = error; //TEST assignment
   //(* mark_debug = "true" *) wire [7:0] Kp;

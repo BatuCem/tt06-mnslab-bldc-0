@@ -18,14 +18,11 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module TOP_MODULE(
+module esc_1(
     input clk,
     input rst,  // SW0
     // I2C Ports
-    //inout sda,  // JB1
-    input sda_in,
-    output sda_out,
-    output sda_oe,
+    inout sda,  // JB1
     input scl,  // JB2
     output sda_enable, // JB3
     
@@ -55,7 +52,8 @@ module TOP_MODULE(
     wire write_i2c;
     wire read_1_i2c;
     wire [7:0] index_1_i2c;
-    wire slow_clk;
+    wire slow_clk1;
+    wire slow_clk2;
     wire [7:0] Kp_int_wire;
     wire [3:0] tunerreset_autotune;
     
@@ -64,16 +62,15 @@ module TOP_MODULE(
     Divided_Clock divide_clk(
         . clk(clk),
         . rst(rst),
-        . div_clk(slow_clk)
+        . div_clk1(slow_clk1),
+        . div_clk2(slow_clk2)
     );
     
     I2C_SLAVE_1 I2C_SLAVE(
-        . clk(slow_clk),
+        . clk(slow_clk1),
         . rst(rst),
         // I2C Ports
-        . sda_in(sda_in),
-        . sda_out(sda_out),
-        . sda_oe(sda_oe),
+        . sda(sda),
         . scl(scl),
         . sda_enable(sda_enable),
         // RAM control signals
@@ -88,7 +85,7 @@ module TOP_MODULE(
     );
     
     Register_Module_1 RAM_BLOCK(
-        . clk(slow_clk),
+        . clk(slow_clk1),
         . rst(rst),
         . write(write_i2c),
         . read_1(read_1_i2c),
@@ -107,7 +104,8 @@ module TOP_MODULE(
     );
     
     bldc_esc_1 BLDC_ESC(
-      . clk(slow_clk),
+      . clk(slow_clk2),
+      . clk_div(slow_clk1),
       . reset(rst),
       . tunerreset_autotune(tunerreset_autotune),
       . pwm_en(pwm_en),
