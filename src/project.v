@@ -6,7 +6,7 @@
 
 `define default_netname none
 
-module tt_um_example (
+module tt_um_MNSLab_BLDC (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -18,8 +18,22 @@ module tt_um_example (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+    assign uo_out[6:2] = 5'b000000;
+    assign uio_out = 8'b00000000;
+    assign uio_oe = 8'b00000000;
+
+    TOP_MODULE top_design (
+        .clk(clk),
+        .rst(rst_n),
+        .sda(ui_in[0]),
+        .scl(ui_in[3]),
+        .sda_enable(uo_out[7]),
+        .pwm_en(ena),
+        .encoder_a(ui_in[5]),
+        .encoder_b(ui_in[6]),
+        .motor_positive(uo_out[0]),
+        .motor_negative(uo_out[1])
+    )
+    
 
 endmodule
