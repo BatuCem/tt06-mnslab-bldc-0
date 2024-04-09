@@ -22,7 +22,7 @@ module tt_um_MNSLab_BLDC (
     assign uio_out[7:1] = 7'b0000000;
     assign uio_oe[7:1] = 7'b0000000;
 
-    TOP_MODULE top_design (
+    esc_1 top_design (
         .clk(clk),
         .rst(~rst_n),
         .sda_in(uio_in[0]),
