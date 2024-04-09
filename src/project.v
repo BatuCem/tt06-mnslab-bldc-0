@@ -33,7 +33,7 @@ module tt_um_MNSLab_BLDC (
         .encoder_b(ui_in[6]),
         .motor_positive(uo_out[0]),
         .motor_negative(uo_out[1])
-    )
+    );
     
 
 endmodule
