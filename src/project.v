@@ -27,7 +27,7 @@ module tt_um_MNSLab_BLDC (
         .rst(rst_n),
         .sda_in(uio_in[0]),
         .sda_out(uio_out[0]),
-        .sda_oe(uio_oe[0])
+        .sda_oe(uio_oe[0]),
         .scl(ui_in[3]),
         .sda_enable(uo_out[7]),
         .pwm_en(ena),
