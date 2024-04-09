@@ -22,6 +22,7 @@ project:
     - "I2C_SLAVE_4.v"
     - "pid_tuner.v"
     - "Register_Module.v"
+    - "TOP_MODULE_1.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
