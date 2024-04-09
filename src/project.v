@@ -19,13 +19,15 @@ module tt_um_MNSLab_BLDC (
 
   // All output pins must be assigned. If not used, assign to 0.
     assign uo_out[6:2] = 5'b000000;
-    assign uio_out = 8'b00000000;
-    assign uio_oe = 8'b00000000;
+    assign uio_out[7:1] = 7'b0000000;
+    assign uio_oe[7:1] = 7'b0000000;
 
     TOP_MODULE top_design (
         .clk(clk),
         .rst(rst_n),
-        .sda(ui_in[0]),
+        .sda_in(uio_in[0]),
+        .sda_out(uio_out[0]),
+        .sda_oe(uio_oe[0])
         .scl(ui_in[3]),
         .sda_enable(uo_out[7]),
         .pwm_en(ena),
