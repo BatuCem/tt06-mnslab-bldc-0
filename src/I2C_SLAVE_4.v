@@ -23,7 +23,10 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
     input rst,
     // I2C Ports
     input scl,
-    inout sda,
+    //inout sda,
+    input sda_in,
+    output sda_out,
+    output sda_oe,
     output sda_enable,
     // RAM control signals 
     output write,
@@ -84,7 +87,8 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
     reg sda_reg;
     reg [debounce-1:0] sda_shift_reg;
     
-    assign sda = (sda_en) ? (1'bz) : (1'b0);
+    assign sda_out = (sda_en) ? (1'bz) : (1'b0);
+    assign sda_oe = ~ sda_en;
     
     reg [2:0] fsm_state;
     parameter IDLE  = 0;
@@ -141,7 +145,7 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
                 scl_reg <= scl_shift_reg[0];
             end
         
-            sda_shift_reg <= {sda_shift_reg[debounce-2:0],sda};
+            sda_shift_reg <= {sda_shift_reg[debounce-2:0],sda_in};
             
             if (sda_shift_reg == {debounce{1'b0}} || sda_shift_reg == {debounce{1'b1}})begin
                 sda_reg <= sda_shift_reg[0];
