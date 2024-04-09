@@ -22,7 +22,10 @@ module TOP_MODULE(
     input clk,
     input rst,  // SW0
     // I2C Ports
-    inout sda,  // JB1
+    //inout sda,  // JB1
+    input sda_in,
+    output sda_out,
+    output sda_oe,
     input scl,  // JB2
     output sda_enable, // JB3
     
@@ -68,7 +71,9 @@ module TOP_MODULE(
         . clk(slow_clk),
         . rst(rst),
         // I2C Ports
-        . sda(sda),
+        . sda_in(sda_in),
+        . sda_out(sda_out),
+        . sda_oe(sda_oe),
         . scl(scl),
         . sda_enable(sda_enable),
         // RAM control signals
