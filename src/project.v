@@ -24,7 +24,7 @@ module tt_um_MNSLab_BLDC (
 
     TOP_MODULE top_design (
         .clk(clk),
-        .rst(rst_n),
+        .rst(~rst_n),
         .sda_in(uio_in[0]),
         .sda_out(uio_out[0]),
         .sda_oe(uio_oe[0]),
