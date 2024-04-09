@@ -30,7 +30,7 @@ pinout:
   ui[1]: ""
   ui[2]: ""
   ui[3]: "scl"
-  ui[4]: "pwm_en"
+  ui[4]: ""
   ui[5]: "encoder_a"
   ui[6]: "encoder_b"
   ui[7]: ""
