@@ -9,12 +9,13 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
-
+For some motor driver and BLDC motor combinations with encoders, the controller works universally through its I2C interface via PID control and Nichols-Ziegler auto-tuning algorithm for automated PID constants.
+I2C Addressing:
+Slave Address: 0x72
+Subaddresses:
 ## How to test
-
-Explain how to use your project
-
+Test when a motor setup is ready by simply communicating through I2C with SCL at about 100kHz. With the adressing above, one can automate PID control or take over (override) to manual settings. Generated PWM and desired motor period is also interfaced through I2C and fully configurable.
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+Motor Driver has to be used in order to convert digital pwm signals to power signals.
+BLDC motor with positive and negative inputs & at least 2 encoders must be used to infer speed and direction.
