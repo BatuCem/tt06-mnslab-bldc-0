@@ -19,14 +19,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module Divided_Clock(
-    input clk,
+    input clk, //25MHz clk
     input rst,
     output div_clk1,
     output div_clk2
     );
-    reg [7:0] counter= 8'b0;
-    assign div_clk1 = counter[1];
-    assign div_clk2 = counter[6];
+    reg [2:0] counter= 3'b0;
+    assign div_clk1 = counter[0];
+    assign div_clk2 = counter[2];
     always @(posedge clk)begin
         if (rst)begin
             counter <= counter + 1;
