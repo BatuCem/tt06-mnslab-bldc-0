@@ -18,4 +18,7 @@ Test when a motor setup is ready by simply communicating through I2C with SCL at
 ## External hardware
 
 Motor Driver has to be used in order to convert digital pwm signals to power signals.
+
 BLDC motor with positive and negative inputs & at least 2 encoders must be used to infer speed and direction.
+
+Pullup resistors are needed to communicate through i2c, if not provided.
