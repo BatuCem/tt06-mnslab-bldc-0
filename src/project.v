@@ -28,11 +28,11 @@ module tt_um_MNSLab_BLDC (
         .sda_in(uio_in[0]),
         .sda_out(uio_out[0]),
         .sda_oe(uio_oe[0]),
-        .scl(ui_in[3]),
+        .scl(ui_in[7]),
         .sda_enable(uo_out[7]),
         .pwm_en(ena),
-        .encoder_a(ui_in[5]),
-        .encoder_b(ui_in[6]),
+        .encoder_a(ui_in[0]),
+        .encoder_b(ui_in[1]),
         .motor_positive(uo_out[0]),
         .motor_negative(uo_out[1])
     );
