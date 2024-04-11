@@ -63,7 +63,7 @@
 	reg signed [DATA_WIDTH-1:0] peak_level=16'd0;
 	reg signed [DATA_WIDTH-1:0] prev_peak_level=16'd0;
 	reg signed [DATA_WIDTH-1:0] dip_level;
-    reg [7:0] Kp_max;				//temporary Kp for incrementation and find max, init to decimal 1 
+    reg [7:0]	Kp_max;				//temporary Kp for incrementation and find max, init to decimal 1 
 	
    //find peaks
 	reg autotune_finalized=1'b0;
@@ -73,7 +73,7 @@
 	reg Ki_done;
 	reg Kd_done;
 	
-	always @(posedge clk_slow) begin
+	always @(posedge clk_div) begin
     if (reset) begin
 		peak_period<=16'h7fff;
 		Kp_done<=1'b0;
@@ -103,7 +103,7 @@
 	       begin
 	           prev_period_speed<=period_speed_reg;
 	           period_speed_reg<=period_speed;
-	               if(prev_period_speed<period_speed_reg)
+	               if(prev_period_speed<=period_speed_reg)
 	               begin
 	                   increasing_flag<=1'b1;
 	               end else if (increasing_flag==1'b1)
@@ -112,12 +112,13 @@
 	               end else begin
 	                   increasing_flag<=1'b0;
 	               end
-	               if(prev_period_speed>period_speed_reg)	//decreasing signal
+	               if(prev_period_speed>=period_speed_reg)	//decreasing signal
 	               begin
 	                   decreasing_flag<=1'b1;
+	                   period_counter<=period_counter+1;
 	               end else if (decreasing_flag==1'b1)	//found peak
 	               begin
-	                   peak_period<=period_counter>>6;	//replace current period with counted period
+	                   peak_period<=period_counter;	//replace current period with counted period
 	                   period_counter<=16'd0;			//TODO: convert to non-blocking type
 	                   prev_peak_level<=peak_level;
 	                   peak_level<=prev_period_speed;	//made prev_period_speed instead of period_speed to get real peak			
