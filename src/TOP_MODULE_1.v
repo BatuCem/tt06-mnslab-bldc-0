@@ -27,7 +27,6 @@ module esc_1(
     output sda_out,
     output sda_oe,
     input scl,  // JB2
-    output sda_enable, // JB3
     
     input pwm_en,   // SW15
     input encoder_a,    // JB4
@@ -78,7 +77,6 @@ module esc_1(
         .sda_out(sda_out),
         .sda_oe(sda_oe),
         . scl(scl),
-        . sda_enable(sda_enable),
         // RAM control signals
         . write(write_i2c),
         . read_1(read_1_i2c),
