@@ -18,7 +18,7 @@ module tt_um_MNSLab_BLDC (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-    assign uo_out[6:2] = 5'b000000;
+    assign uo_out[7:2] = 6'b000000;
     assign uio_out[7:1] = 7'b0000000;
     assign uio_oe[7:1] = 7'b0000000;
 
