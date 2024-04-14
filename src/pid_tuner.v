@@ -73,7 +73,7 @@
 	reg Ki_done;
 	reg Kd_done;
 	
-	always @(posedge clk_div) begin
+	always @(posedge clk_slow) begin
     if (reset) begin
 		peak_period<=16'h7fff;
 		Kp_done<=1'b0;
