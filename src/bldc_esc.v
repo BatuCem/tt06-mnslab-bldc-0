@@ -81,7 +81,6 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
     
     pid_tuner tuner_inst_1(
 	   .clk_div(clk_div),
-	   .clk_slow(clk),
 	   .reset(tunerreset_pin),
 	   .pid_select(tunerreset_autotune[2:0]),
 	   .period_speed(error),
