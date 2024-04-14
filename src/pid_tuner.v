@@ -22,7 +22,6 @@
   parameter DATA_WIDTH = 16 //only used at the 3rd subroutine
 )(
   input wire clk_div,              		// clock input. when there is no clk signal motor does not run, CLK @50MHz, T=20ns
-  input wire clk_slow,
   input wire reset,            		// when it is 1 motor does run
   input wire [2:0] pid_select,			//select control type: 100 for P, 110 for PI, 111 for PID (?)
   input wire signed [DATA_WIDTH-1:0] period_speed,//system output of speed measured in clock cycles
@@ -73,7 +72,7 @@
 	reg Ki_done;
 	reg Kd_done;
 	
-	always @(posedge clk_slow) begin
+	always @(posedge clk_div) begin
     if (reset) begin
 		peak_period<=16'h7fff;
 		Kp_done<=1'b0;
