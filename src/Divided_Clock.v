@@ -25,8 +25,8 @@ module Divided_Clock(
     output div_clk2
     );
     reg [2:0] counter= 3'b0;
-    assign div_clk1 = counter[0]; //25MHz divider clock
-    assign div_clk2 = counter[2]; //6.25MHz esc counter clock
+    assign div_clk1 = clk; //25MHz divider clock
+    assign div_clk2 = counter[1]; //6.25MHz esc counter clock
     always @(posedge clk)begin
         if (rst)begin
             counter <= counter + 1;
