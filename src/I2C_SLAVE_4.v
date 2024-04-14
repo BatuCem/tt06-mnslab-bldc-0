@@ -42,7 +42,7 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
     assign data_out = temp_data;
     
     assign read_1 = ((data_will_send && bit_count==5'd18) || (data_will_send && bit_count==5'd9)) ? (1'b1) : (1'b0);
-    assign sda_oe = sda_enable_reg ;
+    assign sda_oe = ~ sda_enable_reg ;
     
     localparam TIME_THDSTA  =15;         //(0x6us/clock);     // 0.6 us 29 
     localparam TIME_TLOW    =15;        //(0x6us/clock);    // 1.3 us 63
@@ -232,7 +232,7 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
                                 else if(nack_sended)begin
                                     sda_en <= 1'b1;
                                     sda_enable_reg <= 1'b0;
-                                    fsm_state <= IDLE;
+                                    fsm_state <= TSTO;
                                     counter_reset <= 1'b1;
                                 end
                             end
