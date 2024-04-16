@@ -5,7 +5,6 @@
 // Create Date: 17.01.2024 11:44:23
 // Design Name: BLDC
 // Module Name: Register_Module_1
-// Project Name: PID Controller for BLDC
 // Target Devices: 
 // Tool Versions: 
 // Description: 
@@ -28,16 +27,16 @@ module Register_Module_1#(parameter depth = 20)(
     input [7:0] Kp_int_i,
     output [7:0] data_out_1,
     //
-    output [15:0] pwm_period,           // 0x40-0x41
-    output [15:0] period_reference,     // 0x42-0x43
-    output [7:0] Kp_ext,               // 0x44
-    output [7:0] Ki_ext,               // 0x45
-    output [6:0] Kd_ext,               // 0x46 [6:0]
-    output override_internal_pid,        // 0x46 [7]
-    output [3:0] tunerreset_autotune              // 0x48
+    output [15:0] pwm_period,
+    output [15:0] period_reference, 
+    output [7:0] Kp_ext,             
+    output [7:0] Ki_ext,               
+    output [6:0] Kd_ext,              
+    output override_internal_pid,      
+    output [3:0] tunerreset_autotune          
     );
     
-    reg [7:0] internal_register [0:depth-1]; // start from 0x40
+    reg [7:0] internal_register [0:depth-1]; 
     assign data_out_1 = (read_1) ? (internal_register[index_1[4:0]]) : (8'b0);
     
     assign pwm_period            = {internal_register[0],internal_register[1]};
