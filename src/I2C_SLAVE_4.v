@@ -86,7 +86,7 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
     reg sda_reg;
     reg [debounce-1:0] sda_shift_reg;
     
-    assign sda_out = (sda_en) ? (1'bz) : (1'b0);
+    assign sda_out = (sda_en) ? (1'b1) : (1'b0);
     
     reg [2:0] fsm_state;
     parameter IDLE  = 0;
