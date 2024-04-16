@@ -5,7 +5,6 @@
 // Create Date: 17.01.2024 11:44:23
 // Design Name: BLDC
 // Module Name: Divided_Clock
-// Project Name: PID Controller for BLDC
 // Target Devices: 
 // Tool Versions: 
 // Description: 
@@ -25,8 +24,8 @@ module Divided_Clock(
     output div_clk2
     );
     reg [2:0] counter= 3'b0;
-    assign div_clk1 = clk; //50MHz divider clock
-    assign div_clk2 = counter[2]; //6.25MHz esc counter clock
+    assign div_clk1 = clk;
+    assign div_clk2 = counter[2];
     always @(posedge clk)begin
         if (rst)begin
             counter <= counter + 1;
