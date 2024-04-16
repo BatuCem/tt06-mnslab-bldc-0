@@ -17,7 +17,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module I2C_SLAVE_1#(parameter debounce = 3)(
+module I2C_SLAVE_1#(parameter debounce = 5)(
     input clk,
     input rst,
     // I2C Ports
