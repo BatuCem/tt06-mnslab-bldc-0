@@ -19,16 +19,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 
  module pid_tuner #(
-  parameter DATA_WIDTH = 16 //only used at the 3rd subroutine
+  parameter DATA_WIDTH = 16 
 )(
-  input wire clk_div,              		// clock input. when there is no clk signal motor does not run, CLK @50MHz, T=20ns
-  input wire reset,            		// when it is 1 motor does run
-  input wire [2:0] pid_select,			//select control type: 100 for P, 110 for PI, 111 for PID (?)
-  input wire signed [DATA_WIDTH-1:0] period_speed,//system output of speed measured in clock cycles
+  input wire clk_div,              		
+  input wire reset,            		
+  input wire [2:0] pid_select,			
+  input wire signed [DATA_WIDTH-1:0] period_speed,
   output reg tuning_done,
-	output reg [7:0] Kp,//proportional constant
-	 output reg [7:0] Ki,//integral constant
-	 output reg [6:0] Kd//derivative constant
+	output reg [7:0] Kp,
+	 output reg [7:0] Ki,
+	 output reg [6:0] Kd
   
   
 );
@@ -46,23 +46,23 @@
 	Divider32bit divider_inst(
    .clk(clk_div),
    .reset(reset_divider),
-   .start_division(division_trig),  // Start signal for division
-   .dividend(dividend),       // Dividend input
-   .divisor(divisor),        // Divisor input
-   .quotient(quotient),   // Quotient output
-   .remainder(remainder),  // Remainder output
-      .division_active(division_running),   // Declaration of division_active
+   .start_division(division_trig), 
+   .dividend(dividend),      
+   .divisor(divisor),      
+   .quotient(quotient),   
+   .remainder(remainder), 
+      .division_active(division_running),   
       .division_done(div_done)
 );
 
-	reg [DATA_WIDTH-1:0] period_counter=16'd0;	//register for time between peaks
-	reg [DATA_WIDTH-1:0] peak_period=16'd0;		//register for last time between peaks
+	reg [DATA_WIDTH-1:0] period_counter=16'd0;	
+	reg [DATA_WIDTH-1:0] peak_period=16'd0;		
 	reg signed [DATA_WIDTH-1:0] period_speed_reg=16'd0;
-	reg signed [DATA_WIDTH-1:0] prev_period_speed=16'd0;		//save previous speed
+	reg signed [DATA_WIDTH-1:0] prev_period_speed=16'd0;		
 	reg signed [DATA_WIDTH-1:0] peak_level=16'd0;
 	reg signed [DATA_WIDTH-1:0] prev_peak_level=16'd0;
 	reg signed [DATA_WIDTH-1:0] dip_level;
-    reg [7:0]	Kp_max;				//temporary Kp for incrementation and find max, init to decimal 1 
+    reg [7:0]	Kp_max;			
 	
    //find peaks
 	reg autotune_finalized=1'b0;
@@ -111,28 +111,18 @@
 	               end else begin
 	                   increasing_flag<=1'b0;
 	               end
-	               if(prev_period_speed>=period_speed_reg)	//decreasing signal
+	               if(prev_period_speed>=period_speed_reg)
 	               begin
 	                   decreasing_flag<=1'b1;
 	                   period_counter<=period_counter+1;
-	               end else if (decreasing_flag==1'b1)	//found peak
+	               end else if (decreasing_flag==1'b1)	
 	               begin
-	                   peak_period<=period_counter;	//replace current period with counted period
-	                   period_counter<=16'd0;			//TODO: convert to non-blocking type
+	                   peak_period<=period_counter;	
+	                   period_counter<=16'd0;			
 	                   prev_peak_level<=peak_level;
-	                   peak_level<=prev_period_speed;	//made prev_period_speed instead of period_speed to get real peak			
+	                   peak_level<=prev_period_speed;			
 	                   if (prev_peak_level!=16'h7fff) 
 	                   begin
-//	                       if(peak_level==prev_peak_level)	//Found oscillation Kp if peaks are at the same level (?)
-//	                       begin
-//					           Kp_max<=Kp_max+1;
-//					       end else if (peak_level<prev_peak_level)	//decreasing period peak indicates instability, decrement Kpmax and finalize autotune
-//					       begin
-//					           Kp_max<=Kp_max-1;
-//					           autotune_finalized<=1'b1;
-//					       end else begin	//increasing period peaks, increment Kpmax for more oscillation
-//					           Kp_max<=Kp_max+1;
-//					       end
                            if(dip_level>=0 && peak_level<=0)
                            begin
                                Kp_max<=Kp_max+1;
@@ -144,30 +134,23 @@
 					       autotune_finalized<=1'b0;
 					   end
 					   Kp<=Kp_max;
-					   //prev_peak_flag<=peak_flag;
-					   //prev_peak_flag<=peak_flag;
-					   //peak_flag<=1'b1;
 					   decreasing_flag<=1'b0;
                     end else begin
-                        period_counter<=period_counter+1;		//count period at each clock cycle
+                        period_counter<=period_counter+1;	
                     end
-                    //if(peak_flag==1'b1) begin	//if peak is found, 
-                    //peak_flag<=1'b0;			//reset peak found flag
                 end else begin
-                    //TODO:set outputs for different cases
 					case (pid_select)
-					   3'b100: begin //SELECT PROPORTIONAL CONTROL
-						  Kp<=Kp_max>>1;	//right shift (div by 2) Kpmax to get Kp
+					   3'b100: begin 
+						  Kp<=Kp_max>>1;
 						  Kp_done<=1'b1;
 						  Ki<=0;
 						  Ki_done<=1'b1;
 						  Kd<=0;
 						  Kd_done<=1'b1;
 					   end
-					   3'b110: begin //SELECT PROPORTIONAL-INTEGRAL CONTROL
+					   3'b110: begin
 						  if(Kp_done!=1'b1)
 						  begin
-						      //Kp<=Kp_max*45/100;
 						      if(division_trig==1'b0)
 						      begin
                                 reset_divider<=1'b1;
@@ -183,7 +166,6 @@
                             end
                         end else if (Ki_done!=1'b1)
 					       begin
-					           //Ki<=54*Kp_max/(peak_period*100)
 					           if(division_trig==1'b0)
 					           begin
 							        dividend<=54*Kp_max;
@@ -200,10 +182,9 @@
 						Kd<=0;
 						Kd_done<=1'b1;
 					end
-					3'b111: begin //SELECT PROPORTIONA-INTEGRAL-DERIVATIVE CONTROL
+					3'b111: begin 
 						if(Kp_done!=1'b1)
 						begin
-							//Kp<=Kp_max*6/10;
 							if(division_trig==1'b0)
 							begin
                               	reset_divider<=1'b1;
@@ -219,8 +200,6 @@
                             end
 							end else if (Ki_done!=1'b1)
 							begin
-								
-							//Ki<=12*Kp_max/(peak_period*10);
 								if(division_trig==1'b0)
 							begin
                               	
@@ -237,7 +216,6 @@
                             end
 							end else if (Kd_done!=1'b1)
 							begin
-								//Kd<=3*Kp_max*peak_period/40;
 								if(division_trig==1'b0)
 							begin
                               	reset_divider<=1'b01;
@@ -255,7 +233,7 @@
 							end
 					end
 					default:begin
-						Kp<=0;	//STOP PID operation in case of invalid input
+						Kp<=0;
 						Ki<=0;
 						Kd<=0;
 						Kp_done<=1'b1;
@@ -268,10 +246,6 @@
     	end
 	       
 	end 
-	
-  //(* mark_debug = "true" *) wire [15:0] Kp_max;
-  //(* mark_debug = "true" *) wire [15:0] peak_period;
-  
 	
 
 endmodule 
