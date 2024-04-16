@@ -44,8 +44,8 @@ module I2C_SLAVE_1#(parameter debounce = 3)(
     assign read_1 = ((data_will_send && bit_count==5'd18) || (data_will_send && bit_count==5'd9)) ? (1'b1) : (1'b0);
     assign sda_oe = ~ sda_enable_reg ;
     
-    localparam TIME_THDSTA  =15;         //(0x6us/clock);     // 0.6 us 29 
-    localparam TIME_TLOW    =15;        //(0x6us/clock);    // 1.3 us 63
+    localparam TIME_THDSTA  =5;         //(0x6us/clock);     // 0.6 us 29 
+    localparam TIME_TLOW    =5;        //(0x6us/clock);    // 1.3 us 63
     localparam I2CBITS      =29;
     
     
