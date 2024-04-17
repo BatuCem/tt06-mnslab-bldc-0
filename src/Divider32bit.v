@@ -29,7 +29,7 @@ module Divider32bit (
   	output reg division_done
 );
 
-  reg [5:0] division_cycle = 6'b100001;
+  reg [5:0] division_cycle;
    reg [32:0] store_divisor;   
    reg [32:0] shifting_divisor;    
    reg [31:0] shifting_dividend;    
