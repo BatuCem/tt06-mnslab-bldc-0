@@ -34,9 +34,9 @@
 );
 
 
-	reg division_trig =1'b0;
-	reg [31:0] dividend=32'd0;
-	reg [31:0] divisor =32'd0;
+	reg division_trig;
+	reg [31:0] dividend;
+	reg [31:0] divisor ;
 	wire [31:0] quotient ;
 	wire [31:0] remainder ;
 	wire division_running;
@@ -55,19 +55,19 @@
       .division_done(div_done)
 );
 
-	reg [DATA_WIDTH-1:0] period_counter=16'd0;	
-	reg [DATA_WIDTH-1:0] peak_period=16'd0;		
-	reg signed [DATA_WIDTH-1:0] period_speed_reg=16'd0;
-	reg signed [DATA_WIDTH-1:0] prev_period_speed=16'd0;		
-	reg signed [DATA_WIDTH-1:0] peak_level=16'd0;
-	reg signed [DATA_WIDTH-1:0] prev_peak_level=16'd0;
+	reg [DATA_WIDTH-1:0] period_counter;	
+	reg [DATA_WIDTH-1:0] peak_period;		
+	reg signed [DATA_WIDTH-1:0] period_speed_reg;
+	reg signed [DATA_WIDTH-1:0] prev_period_speed;		
+	reg signed [DATA_WIDTH-1:0] peak_level;
+	reg signed [DATA_WIDTH-1:0] prev_peak_level;
 	reg signed [DATA_WIDTH-1:0] dip_level;
     reg [7:0]	Kp_max;			
 	
    //find peaks
-	reg autotune_finalized=1'b0;
-	reg decreasing_flag=1'b0;
-	reg increasing_flag=1'b0;
+	reg autotune_finalized;
+	reg decreasing_flag;
+	reg increasing_flag;
 	reg Kp_done;
 	reg Ki_done;
 	reg Kd_done;
