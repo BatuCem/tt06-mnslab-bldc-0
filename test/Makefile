@@ -7,7 +7,6 @@ TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
 PROJECT_SOURCES = project.v
 PROJECT_SOURCES+=bldc_esc.v
-PROJECT_SOURCES+=Divided_Clock.v
 PROJECT_SOURCES+=Divider32bit.v
 PROJECT_SOURCES+=I2C_SLAVE_4.v
 PROJECT_SOURCES+=pid_tuner.v
