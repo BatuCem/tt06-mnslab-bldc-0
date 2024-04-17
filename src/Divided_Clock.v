@@ -23,12 +23,12 @@ module Divided_Clock(
     output div_clk1,
     output div_clk2
     );
-    reg [2:0] counter= 3'b0;
+    reg [2:0] counter;
     assign div_clk1 = clk;
     assign div_clk2 = counter[2];
     always @(posedge clk)begin
         if (rst)begin
-            counter <= counter + 1;
+            counter <= 3'b0;
         end
         else begin
             counter <= counter + 1;
