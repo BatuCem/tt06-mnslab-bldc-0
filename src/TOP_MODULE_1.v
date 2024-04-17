@@ -49,20 +49,12 @@ module esc_1(
     wire write_i2c;
     wire read_1_i2c;
     wire [7:0] index_1_i2c;
-    wire slow_clk1;
-    wire slow_clk2;
     wire [7:0] Kp_int_wire;
     wire [3:0] tunerreset_autotune;
      
-    Divided_Clock divide_clk(
-        . clk(clk),
-        . rst(rst),
-        . div_clk1(slow_clk1),
-        . div_clk2(slow_clk2)
-    );
     
     I2C_SLAVE_1 I2C_SLAVE(
-        . clk(slow_clk1),
+        . clk(clk),
         . rst(rst),
         .sda_in(sda_in),
         .sda_out(sda_out),
@@ -78,7 +70,7 @@ module esc_1(
     );
     
     Register_Module_1 RAM_BLOCK(
-        . clk(slow_clk1),
+        . clk(clk),
         . rst(rst),
         . write(write_i2c),
         . read_1(read_1_i2c),
@@ -97,8 +89,8 @@ module esc_1(
     );
     
     bldc_esc_1 BLDC_ESC(
-      . clk(slow_clk2),
-      . clk_div(slow_clk1),
+      . clk(clk),
+      . clk_div(clk),
       . reset(rst),
       . tunerreset_autotune(tunerreset_autotune),
       . pwm_en(pwm_en),
