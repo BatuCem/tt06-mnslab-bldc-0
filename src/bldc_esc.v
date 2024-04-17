@@ -73,6 +73,7 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
     reg flag;
     reg counter_rst;
     reg [1:0]encoder_a_set;
+	reg [3:0] clk_counter;
     
     pid_tuner tuner_inst_1(
 	   .clk_div(clk_div),
@@ -117,7 +118,9 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
             encoder_b_reg <= 1'b0;
             pwm_en_shift_reg <= 3'b0;
             pwm_en_reg <= 1'b0;
-        end else begin
+		clk_counter<=4'd0;
+	end else if (clk_counter==4'd7)begin
+		clk_counter<=4'd0;
             pwm_en_shift_reg <= {pwm_en_shift_reg[debounce-2:0],pwm_en};
             if (pwm_en_shift_reg == {debounce{1'b0}} || pwm_en_shift_reg == {debounce{1'b1}})begin
                 pwm_en_reg <= pwm_en_shift_reg[0];  
@@ -239,6 +242,8 @@ module bldc_esc_1 #(parameter DATA_WIDTH = 16,parameter debounce = 3)(
             end else begin
                 speed_ctr<=speed_ctr+1;
             end
+    end else begin
+	clk_counter <=clk_counter+1;
     end
 end
 endmodule
