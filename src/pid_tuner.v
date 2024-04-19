@@ -82,10 +82,10 @@
 		dividend<=32'd0;
 		divisor<=32'd0;
       	period_counter<=16'd0;
-      	period_speed_reg<=16'h7fff;
-      	prev_period_speed<=16'h7fff;
-      	peak_level<=16'h7fff;
-      	prev_peak_level<=16'h7fff;
+      	period_speed_reg<=16'h8000;
+      	prev_period_speed<=16'h8000;
+      	peak_level<=16'h8000;
+      	prev_peak_level<=16'h8000;
       	dip_level<=16'h0000;
       	autotune_finalized<=1'b0;
       	decreasing_flag<=1'b0;
@@ -121,9 +121,9 @@
 	                   period_counter<=16'd0;			
 	                   prev_peak_level<=peak_level;
 	                   peak_level<=prev_period_speed;			
-	                   if (prev_peak_level!=16'h7fff) 
+			       if (prev_peak_level!=16'h8000) 
 	                   begin
-                           if(dip_level>=0 && peak_level<=0)
+				   if(dip_level>=-200 && peak_level<=200)
                            begin
                                Kp_max<=Kp_max+1;
                            end else begin
